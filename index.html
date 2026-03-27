@@ -1,0 +1,3856 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 FORZA - Gestão Integrada</title>
+    
+    <!-- Fonts e Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Bibliotecas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== TELA DE LOGIN ===== */
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            width: 400px;
+            max-width: 90%;
+            padding: 40px;
+            margin: 20px auto;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        .login-header p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .login-form label i {
+            margin-right: 5px;
+            color: #002B5C;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .login-form input:focus {
+            border-color: #002B5C;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0,43,92,0.1);
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 14px;
+            background: #002B5C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-form button:hover {
+            background: #001f44;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .erro-mensagem {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== SISTEMA PRINCIPAL ===== */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            background: #f0f2f5;
+            width: 100%;
+        }
+
+        .app-container.active {
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #002B5C 0%, #001a3a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text strong {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .logo-text small {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .user-profile {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .user-avatar-large {
+            width: 60px;
+            height: 60px;
+            background: #FFD700;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #002B5C;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            background: rgba(255,255,255,0.1);
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .user-role.admin {
+            background: #FFD700;
+            color: #002B5C;
+        }
+
+        .municipio-selector {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .municipio-selector label {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .municipio-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .municipio-select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .municipio-select option {
+            background: #002B5C;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 15px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            margin: 2px 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .nav-item i {
+            width: 18px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: white;
+            color: #002B5C;
+        }
+
+        .nav-divider {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 12px 15px;
+        }
+
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .competencia-selector {
+            margin-bottom: 12px;
+        }
+
+        .competencia-selector label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .competencia-selector select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 20px;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .page-title-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar h1 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .municipio-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .user-info .badge {
+            position: absolute;
+            top: -6px;
+            right: 30px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: #002B5C;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .content-area {
+            background: transparent;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        .loading::after {
+            content: "";
+            width: 35px;
+            height: 35px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #002B5C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Cards */
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .card-icon.docs { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .card-icon.payments { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .card-icon.suppliers { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .card-icon.completion { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .card-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-content h3 {
+            color: #6c757d;
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-content .valor {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-content .small {
+            font-size: 0.65rem;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.7fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .vigencia-card, .historico-card {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .vigencia-header, .historico-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .vigencia-header i, .historico-header i {
+            font-size: 1.1rem;
+            color: #002B5C;
+        }
+
+        .vigencia-header h3, .historico-header h3 {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .contrato-info {
+            margin-bottom: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+
+        .info-label {
+            width: 70px;
+            color: #6c757d;
+        }
+
+        .info-value {
+            color: #2c3e50;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .vigencia-timer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .timer-circle {
+            width: 60px;
+            height: 60px;
+            border: 3px solid;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .timer-dias {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .timer-label {
+            font-size: 0.55rem;
+            color: #6c757d;
+        }
+
+        .timer-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .timer-texto {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timer-percentual {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .progresso-container {
+            margin-top: 12px;
+        }
+
+        .progresso-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .progresso-bar {
+            height: 5px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progresso-fill {
+            height: 100%;
+            background: #002B5C;
+            border-radius: 3px;
+        }
+
+        .historico-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .mes-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px 5px;
+            text-align: center;
+            border-left: 3px solid transparent;
+        }
+
+        .mes-item.completo {
+            border-left-color: #28a745;
+            background: #f0f9f0;
+        }
+
+        .mes-item.pendente {
+            border-left-color: #ffc107;
+            background: #fff9f0;
+        }
+
+        .mes-item.nao-iniciado {
+            border-left-color: #dc3545;
+            background: #fff0f0;
+        }
+
+        .mes-item.futuro {
+            border-left-color: #6c757d;
+            background: #f8f9fa;
+            opacity: 0.6;
+        }
+
+        .mes-nome {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+        }
+
+        .mes-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            font-size: 0.6rem;
+        }
+
+        .status-icon {
+            font-size: 0.7rem;
+        }
+
+        .historico-legenda {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-top: 8px;
+            border-top: 1px solid #e9ecef;
+            font-size: 0.65rem;
+        }
+
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #6c757d;
+        }
+
+        .legenda-cor {
+            width: 8px;
+            height: 8px;
+            border-radius: 3px;
+        }
+
+        .legenda-cor.completo { background: #28a745; }
+        .legenda-cor.pendente { background: #ffc107; }
+        .legenda-cor.nao-iniciado { background: #dc3545; }
+        .legenda-cor.futuro { background: #6c757d; }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+
+        .stat-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .stat-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stat-valor {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lista-container {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .lista-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .lista-header h2 {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lista-header h2 i {
+            color: #002B5C;
+            font-size: 1rem;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-add.small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-add.pdf {
+            background: #dc3545;
+        }
+
+        .btn-add.pdf:hover {
+            background: #c82333;
+        }
+
+        .btn-add.primary {
+            background: #002B5C;
+        }
+
+        .btn-add.primary:hover {
+            background: #001f44;
+        }
+
+        .item-lista {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .item-lista:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .item-info h4 {
+            color: #2c3e50;
+            margin-bottom: 3px;
+            font-size: 0.95rem;
+        }
+
+        .item-info p {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .item-valor {
+            font-weight: 600;
+            color: #002B5C;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .item-acoes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .item-acoes button {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .item-acoes .edit { color: #002B5C; }
+        .item-acoes .delete { color: #dc3545; }
+        .item-acoes .view { color: #17a2b8; }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: #002B5C;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e9ecef;
+            white-space: nowrap;
+        }
+
+        td:first-child {
+            white-space: normal;
+            min-width: 150px;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .status-badge.ativo, .status-badge.ok, .status-badge.válida {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.inativo, .status-badge.vencida {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.atencao {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .cnd-valida {
+            background: #d4edda;
+            color: #155724;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .cnd-vencida {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .cnd-atencao {
+            background: #fff3cd;
+            color: #856404;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .total-pagar {
+            background: #002B5C;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: right;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .upload-area, .import-area {
+            background: #f8f9fa;
+            border: 2px dashed #002B5C;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover, .import-area:hover {
+            background: #e8f4f8;
+        }
+
+        .upload-area i, .import-area i {
+            font-size: 2.5rem;
+            color: #002B5C;
+            margin-bottom: 10px;
+        }
+
+        .upload-area h3, .import-area h3 {
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .upload-area p, .import-area p {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #002B5C;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+            display: none;
+        }
+
+        #assinaturaCanvas {
+            border: 1px solid #002B5C;
+            background: white;
+            border-radius: 6px;
+            margin: 8px 0;
+            cursor: crosshair;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+
+        .municipios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .municipio-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .municipio-header {
+            padding: 12px;
+            color: white;
+        }
+
+        .municipio-header h3 {
+            font-size: 1.1rem;
+            margin-bottom: 3px;
+        }
+
+        .municipio-header p {
+            opacity: 0.8;
+            font-size: 0.75rem;
+        }
+
+        .municipio-body {
+            padding: 15px;
+        }
+
+        .municipio-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .municipio-stats .stat-item {
+            text-align: center;
+        }
+
+        .municipio-stats .stat-item .valor {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .municipio-stats .stat-item .label {
+            font-size: 0.65rem;
+            color: #6c757d;
+        }
+
+        .municipio-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .municipio-footer button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-detalhes {
+            background: #002B5C;
+            color: white;
+        }
+
+        .btn-pdf {
+            background: #28a745;
+            color: white;
+        }
+
+        .livro-preview {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+        }
+
+        .livro-capa {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .livro-capa .brasao-grande {
+            width: 80px;
+            height: 80px;
+            background: #002B5C;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFD700;
+            font-size: 40px;
+        }
+
+        .livro-titulo {
+            font-size: 1.6rem;
+            color: #002B5C;
+            margin-bottom: 5px;
+        }
+
+        .livro-subtitulo {
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .livro-dados {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .livro-assinaturas {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .livro-assinatura-item {
+            text-align: center;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .livro-linha {
+            border-top: 2px solid #002B5C;
+            margin-bottom: 8px;
+            padding-top: 8px;
+        }
+
+        .livro-opcoes {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .livro-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .livro-btn.resumido {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .livro-btn.resumido:hover {
+            background: #138496;
+        }
+
+        .livro-btn.completo {
+            background: #28a745;
+            color: white;
+        }
+
+        .livro-btn.completo:hover {
+            background: #218838;
+        }
+
+        .anexos-container {
+            margin-top: 20px;
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+        }
+
+        .anexos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .anexo-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .anexo-card i {
+            font-size: 2rem;
+            color: #dc3545;
+        }
+
+        .anexo-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .anexo-info h4 {
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .anexo-info p {
+            font-size: 0.7rem;
+            color: #6c757d;
+        }
+
+        .anexo-acoes {
+            display: flex;
+            gap: 5px;
+        }
+
+        .anexo-acoes button {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        #resultadoRelatorio {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        #resultadoRelatorio img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 8px;
+            background: white;
+        }
+
+        .dados-bancarios {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .dados-bancarios input {
+            margin-bottom: 0;
+        }
+
+        .instituto-documento-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #002B5C;
+            transition: all 0.3s;
+        }
+
+        .instituto-documento-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .instituto-documento-card h3 {
+            color: #002B5C;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instituto-documento-card .documento-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 10px;
+        }
+
+        .documento-status.anexado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .documento-status.pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 1024px) {
+            .cards-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .user-profile,
+            .sidebar .municipio-selector,
+            .sidebar .nav-item span,
+            .sidebar-footer .competencia-selector {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .nav-item {
+                justify-content: center;
+                padding: 12px;
+                margin: 3px 8px;
+            }
+            
+            .nav-item i {
+                margin: 0;
+                font-size: 1.1rem;
+            }
+            
+            .cards-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .lista-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-add {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .dados-bancarios {
+                grid-template-columns: 1fr;
+            }
+            
+            .livro-opcoes {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .livro-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TELA DE LOGIN -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-header">
+            <h1>PIVD - Plataforma Inteligente de Validação de Documentos</h1>
+            <p style="margin-top: 10px; color: #6c757d;">FORZA - Gestão Integrada</p>
+        </div>
+
+        <div id="erroLogin" class="erro-mensagem" style="display: none;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="erroTexto">Usuário ou senha inválidos</span>
+        </div>
+
+        <div class="login-form">
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Usuário</label>
+                <input type="text" id="username" placeholder="Digite seu usuário">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha">
+            </div>
+            <button onclick="fazerLogin()">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+        </div>
+
+        <div class="login-footer">
+            <p>Usuários de teste:</p>
+            <p style="font-size: 0.7rem; margin-top: 5px;">
+                <strong>admin:</strong> admin123<br>
+                <strong>choró:</strong> choró123<br>
+                <strong>ibiapina:</strong> ibiapina123<br>
+                <strong>martinópole:</strong> martin123<br>
+                <strong>potengi:</strong> potengi123<br>
+                <strong>umirim:</strong> umirim123
+            </p>
+        </div>
+    </div>
+
+    <!-- SISTEMA PRINCIPAL -->
+    <div class="app-container" id="appContainer">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-text">
+                    <strong>FORZA</strong>
+                    <small>Gestão Integrada</small>
+                </div>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar-large" id="userAvatar">AD</div>
+                <div class="user-name" id="userName">Administrador</div>
+                <div class="user-role" id="userRole">Admin Geral</div>
+            </div>
+            
+            <div class="municipio-selector">
+                <label><i class="fas fa-map-marker-alt"></i> Município</label>
+                <select id="municipioSelect" class="municipio-select">
+                    <option value="choró" selected>Choró</option>
+                    <option value="ibiapina">Ibiapina</option>
+                    <option value="martinópole">Martinópole</option>
+                    <option value="potengi">Potengi</option>
+                    <option value="umirim">Umirim</option>
+                </select>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-divider"></div>
+                
+                <div class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </div>
+                
+                <div class="nav-divider"></div>
+                
+                <!-- Módulo Prestação de Contas - Abas na ordem solicitada -->
+                <div style="padding-left: 15px; margin-bottom: 3px; font-size: 0.65rem; color: rgba(255,255,255,0.5);">
+                    <i class="fas fa-file-invoice"></i> PRESTAÇÃO
+                </div>
+                <div class="nav-item" data-page="municipio">
+                    <i class="fas fa-city"></i>
+                    <span>Município</span>
+                </div>
+                <div class="nav-item" data-page="extrato">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Extrato</span>
+                </div>
+                <div class="nav-item" data-page="balancete">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Balancete</span>
+                </div>
+                <div class="nav-item" data-page="oficios">
+                    <i class="fas fa-envelope"></i>
+                    <span>Ofício</span>
+                </div>
+                <div class="nav-item" data-page="fornecedores">
+                    <i class="fas fa-truck"></i>
+                    <span>Fornecedores</span>
+                </div>
+                <div class="nav-item" data-page="servicos_apoio">
+                    <i class="fas fa-briefcase"></i>
+                    <span>Serviços de Apoio ADM</span>
+                </div>
+                <div class="nav-item" data-page="assistencial">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Assistencial</span>
+                </div>
+                <div class="nav-item" data-page="rh">
+                    <i class="fas fa-users"></i>
+                    <span>RH</span>
+                </div>
+                <div class="nav-item" data-page="outros">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Outros</span>
+                </div>
+                <div class="nav-item" data-page="livro">
+                    <i class="fas fa-book"></i>
+                    <span>Livros</span>
+                </div>
+                
+                <div class="nav-divider"></div>
+                
+                <!-- Módulo Instituto Forza -->
+                <div style="padding-left: 15px; margin-bottom: 3px; font-size: 0.65rem; color: rgba(255,255,255,0.5);">
+                    <i class="fas fa-building"></i> INSTITUTO FORZA
+                </div>
+                <div class="nav-item" data-page="instituto_forza">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Instituto Forza</span>
+                </div>
+                
+                <div class="nav-divider"></div>
+                
+                <!-- Módulo Checklist -->
+                <div style="padding-left: 15px; margin-bottom: 3px; font-size: 0.65rem; color: rgba(255,255,255,0.5);">
+                    <i class="fas fa-check-circle"></i> CHECKLIST
+                </div>
+                <div class="nav-item" data-page="check-dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Check</span>
+                </div>
+                <div class="nav-item" data-page="empresas">
+                    <i class="fas fa-building"></i>
+                    <span>Empresas</span>
+                </div>
+                <div class="nav-item" data-page="upload">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Upload</span>
+                </div>
+                <div class="nav-item" data-page="analise">
+                    <i class="fas fa-search"></i>
+                    <span>Análise</span>
+                </div>
+                <div class="nav-item" data-page="relatorio">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Relatório</span>
+                </div>
+                
+                <div class="nav-divider"></div>
+                
+                <!-- Admin -->
+                <div style="padding-left: 15px; margin-bottom: 3px; font-size: 0.65rem; color: rgba(255,255,255,0.5);">
+                    <i class="fas fa-cog"></i> ADMIN
+                </div>
+                <div class="nav-item" data-page="admin-dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-page="admin-usuarios">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Usuários</span>
+                </div>
+                <div class="nav-item" data-page="admin-municipios">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Todos</span>
+                </div>
+                <div id="adminMenu" style="display: none;"></div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="competencia-selector">
+                    <label>Competência</label>
+                    <select id="competencia">
+                        <option value="2025-01">Jan/2025</option>
+                        <option value="2025-02">Fev/2025</option>
+                        <option value="2025-03">Mar/2025</option>
+                        <option value="2025-04">Abr/2025</option>
+                        <option value="2025-05">Mai/2025</option>
+                        <option value="2025-06">Jun/2025</option>
+                        <option value="2025-07">Jul/2025</option>
+                        <option value="2025-08" selected>Ago/2025</option>
+                    </select>
+                </div>
+                
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title-area">
+                    <h1 id="page-title">Dashboard</h1>
+                    <span class="municipio-badge" id="currentMunicipio">Choró</span>
+                </div>
+                <div class="user-info">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                    <div class="user-avatar" id="headerAvatar">AD</div>
+                </div>
+            </header>
+
+            <div id="content-area" class="content-area">
+                <div class="loading"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ============================================
+        // BANCO DE USUÁRIOS
+        // ============================================
+        const usuarios = [
+            { username: 'admin', password: 'admin123', nome: 'Administrador', role: 'admin', municipio: null },
+            { username: 'choró', password: 'choró123', nome: 'João Silva (Choró)', role: 'user', municipio: 'choró' },
+            { username: 'ibiapina', password: 'ibiapina123', nome: 'Maria Oliveira (Ibiapina)', role: 'user', municipio: 'ibiapina' },
+            { username: 'martinópole', password: 'martin123', nome: 'José Santos (Martinópole)', role: 'user', municipio: 'martinópole' },
+            { username: 'potengi', password: 'potengi123', nome: 'Ana Costa (Potengi)', role: 'user', municipio: 'potengi' },
+            { username: 'umirim', password: 'umirim123', nome: 'Carlos Lima (Umirim)', role: 'user', municipio: 'umirim' }
+        ];
+
+        let usuarioLogado = null;
+
+        // ============================================
+        // DADOS DOS MUNICÍPIOS
+        // ============================================
+        const dadosMunicipios = {
+            choró: {
+                nome: "Choró",
+                regiao: "Sertão Central",
+                cor: "#002B5C",
+                contrato: "2025.07.15.001",
+                dataInicio: "15/07/2025",
+                dataFim: "14/07/2026",
+                valorTotal: 3500000.00,
+                prefeito: "Dr. João Batista",
+                secretario: "Dra. Maria José",
+                documentos: 48,
+                pagamentos: 322707.06,
+                fornecedores: 15,
+                conclusao: 84,
+                banco: "Banco do Brasil",
+                agencia: "1234-5",
+                conta: "56789-0"
+            },
+            ibiapina: {
+                nome: "Ibiapina",
+                regiao: "Serra da Ibiapaba",
+                cor: "#2E7D32",
+                contrato: "2025.07.20.002",
+                dataInicio: "20/07/2025",
+                dataFim: "19/07/2026",
+                valorTotal: 3200000.00,
+                prefeito: "Dr. Marcos Sousa",
+                secretario: "Dra. Ana Paula",
+                documentos: 42,
+                pagamentos: 285430.50,
+                fornecedores: 12,
+                conclusao: 92,
+                banco: "Caixa Econômica",
+                agencia: "4321-0",
+                conta: "98765-4"
+            },
+            "martinópole": {
+                nome: "Martinópole",
+                regiao: "Vale do Acaraú",
+                cor: "#B71C1C",
+                contrato: "2025.07.18.003",
+                dataInicio: "18/07/2025",
+                dataFim: "17/07/2026",
+                valorTotal: 2800000.00,
+                prefeito: "Dr. Francisco Chagas",
+                secretario: "Dra. Luzia Helena",
+                documentos: 38,
+                pagamentos: 198450.30,
+                fornecedores: 10,
+                conclusao: 86,
+                banco: "Banco do Nordeste",
+                agencia: "5678-9",
+                conta: "12345-6"
+            },
+            potengi: {
+                nome: "Potengi",
+                regiao: "Chapada do Araripe",
+                cor: "#4A148C",
+                contrato: "2025.07.22.004",
+                dataInicio: "22/07/2025",
+                dataFim: "21/07/2026",
+                valorTotal: 2950000.00,
+                prefeito: "Dr. Raimundo Nonato",
+                secretario: "Dra. Socorro Lima",
+                documentos: 35,
+                pagamentos: 167890.45,
+                fornecedores: 9,
+                conclusao: 94,
+                banco: "Bradesco",
+                agencia: "8765-4",
+                conta: "32109-8"
+            },
+            umirim: {
+                nome: "Umirim",
+                regiao: "Litoral Oeste",
+                cor: "#E65100",
+                contrato: "2025.07.25.005",
+                dataInicio: "25/07/2025",
+                dataFim: "24/07/2026",
+                valorTotal: 3100000.00,
+                prefeito: "Dr. José Airton",
+                secretario: "Dra. Fátima Gomes",
+                documentos: 41,
+                pagamentos: 276543.80,
+                fornecedores: 11,
+                conclusao: 81,
+                banco: "Santander",
+                agencia: "2468-0",
+                conta: "13579-2"
+            }
+        };
+
+        // ============================================
+        // DADOS DO CHECKLIST
+        // ============================================
+        let empresas = [
+            'FAU SOLUÇÕES',
+            'LUNA EMP',
+            'INSTITUTO FORZA',
+            'CONTAGER',
+            'J.P SERVIÇOS'
+        ];
+        
+        let documentosCheck = [
+            { nome: 'nota_fiscal_001.pdf', dataNF: '2025-08-15', status: 'Válido' },
+            { nome: 'contrato_assinado.pdf', dataNF: '2025-08-10', status: 'Válido' },
+            { nome: 'nf_servicos_123.pdf', dataNF: '2025-08-20', status: 'Válido' },
+            { nome: 'relatorio_mensal.pdf', dataNF: '2025-08-25', status: 'Inválido' }
+        ];
+        
+        let assinaturaUpload = null;
+
+        // ============================================
+        // DADOS DE RH POR MUNICÍPIO
+        // ============================================
+        let funcionariosRH = {
+            choró: [
+                { nome: 'João Silva (Choró)', cargo: 'Médico', admissao: '02/01/2020', salario: 13500.00, status: 'Ativo' },
+                { nome: 'Maria Oliveira (Choró)', cargo: 'Enfermeira', admissao: '15/03/2021', salario: 5300.00, status: 'Ativo' },
+                { nome: 'Carlos Santos (Choró)', cargo: 'Técnico Enfermagem', admissao: '10/06/2022', salario: 2800.00, status: 'Ativo' }
+            ],
+            ibiapina: [
+                { nome: 'Ana Costa (Ibiapina)', cargo: 'Médica', admissao: '05/01/2020', salario: 14200.00, status: 'Ativo' },
+                { nome: 'Pedro Lima (Ibiapina)', cargo: 'Enfermeiro', admissao: '10/03/2021', salario: 5600.00, status: 'Ativo' },
+                { nome: 'Lucia Mendes (Ibiapina)', cargo: 'Técnica Enfermagem', admissao: '15/06/2022', salario: 3100.00, status: 'Ativo' }
+            ],
+            "martinópole": [
+                { nome: 'José Santos (Martinópole)', cargo: 'Médico', admissao: '12/02/2020', salario: 13800.00, status: 'Ativo' },
+                { nome: 'Maria Souza (Martinópole)', cargo: 'Enfermeira', admissao: '20/04/2021', salario: 5400.00, status: 'Ativo' }
+            ],
+            potengi: [
+                { nome: 'Raimundo Nonato (Potengi)', cargo: 'Médico', admissao: '08/03/2020', salario: 13600.00, status: 'Ativo' },
+                { nome: 'Socorro Lima (Potengi)', cargo: 'Enfermeira', admissao: '25/05/2021', salario: 5200.00, status: 'Ativo' }
+            ],
+            umirim: [
+                { nome: 'José Airton (Umirim)', cargo: 'Médico', admissao: '15/04/2020', salario: 13900.00, status: 'Ativo' },
+                { nome: 'Fátima Gomes (Umirim)', cargo: 'Enfermeira', admissao: '30/06/2021', salario: 5300.00, status: 'Ativo' }
+            ]
+        };
+
+        // ============================================
+        // DADOS DE PAGAMENTOS POR MUNICÍPIO
+        // ============================================
+        let pagamentosPorMunicipio = {
+            choró: [
+                { fornecedor: 'FAU SOLUÇÕES', descricao: 'Serviços Médicos', valor: 263886.81, status: 'Pago', data: '30/08/2025' },
+                { fornecedor: 'LUNA EMP', descricao: 'Gêneros Alimentícios', valor: 19320.13, status: 'Pendente', data: '30/08/2025' },
+                { fornecedor: 'INSTITUTO FORZA', descricao: 'Taxa Administrativa', valor: 25000.00, status: 'Pago', data: '30/08/2025' }
+            ],
+            ibiapina: [
+                { fornecedor: 'HOSPIMED', descricao: 'Materiais Hospitalares', valor: 185430.50, status: 'Pago', data: '28/08/2025' },
+                { fornecedor: 'FARMACIA POPULAR', descricao: 'Medicamentos', valor: 45000.00, status: 'Pago', data: '25/08/2025' },
+                { fornecedor: 'LABORATÓRIO IBJ', descricao: 'Exames', valor: 32000.00, status: 'Pendente', data: '29/08/2025' }
+            ],
+            "martinópole": [
+                { fornecedor: 'MEDNORTE', descricao: 'Equipamentos', valor: 98450.30, status: 'Pago', data: '27/08/2025' },
+                { fornecedor: 'FARMACIA MARTIN', descricao: 'Medicamentos', valor: 25000.00, status: 'Pendente', data: '26/08/2025' }
+            ],
+            potengi: [
+                { fornecedor: 'LABORATÓRIO POTENGI', descricao: 'Exames', valor: 67890.45, status: 'Pago', data: '24/08/2025' },
+                { fornecedor: 'HOSPITALAR CE', descricao: 'Materiais', valor: 45000.00, status: 'Pago', data: '23/08/2025' }
+            ],
+            umirim: [
+                { fornecedor: 'HOSPITALAR CE', descricao: 'Materiais', valor: 116543.80, status: 'Pago', data: '22/08/2025' },
+                { fornecedor: 'FARMACIA UMIRIM', descricao: 'Medicamentos', valor: 35000.00, status: 'Pendente', data: '21/08/2025' }
+            ]
+        };
+
+        // ============================================
+        // DADOS DE EXTRATO POR MUNICÍPIO
+        // ============================================
+        let extratosPorMunicipio = {
+            choró: [
+                { data: '01/08/2025', descricao: 'Saldo Inicial', valor: 500000.00, tipo: 'credito' },
+                { data: '05/08/2025', descricao: 'Repasse Fundo Municipal', valor: 150000.00, tipo: 'credito' },
+                { data: '10/08/2025', descricao: 'Pagamento FAU SOLUÇÕES', valor: 263886.81, tipo: 'debito' }
+            ],
+            ibiapina: [
+                { data: '01/08/2025', descricao: 'Saldo Inicial', valor: 450000.00, tipo: 'credito' },
+                { data: '05/08/2025', descricao: 'Repasse Estadual', valor: 200000.00, tipo: 'credito' },
+                { data: '10/08/2025', descricao: 'Pagamento HOSPIMED', valor: 185430.50, tipo: 'debito' }
+            ],
+            "martinópole": [
+                { data: '01/08/2025', descricao: 'Saldo Inicial', valor: 300000.00, tipo: 'credito' },
+                { data: '05/08/2025', descricao: 'Repasse Municipal', valor: 100000.00, tipo: 'credito' },
+                { data: '10/08/2025', descricao: 'Pagamento MEDNORTE', valor: 98450.30, tipo: 'debito' }
+            ],
+            potengi: [
+                { data: '01/08/2025', descricao: 'Saldo Inicial', valor: 280000.00, tipo: 'credito' },
+                { data: '05/08/2025', descricao: 'Repasse Federal', valor: 120000.00, tipo: 'credito' },
+                { data: '10/08/2025', descricao: 'Pagamento LABORATÓRIO', valor: 67890.45, tipo: 'debito' }
+            ],
+            umirim: [
+                { data: '01/08/2025', descricao: 'Saldo Inicial', valor: 350000.00, tipo: 'credito' },
+                { data: '05/08/2025', descricao: 'Repasse Municipal', valor: 130000.00, tipo: 'credito' },
+                { data: '10/08/2025', descricao: 'Pagamento HOSPITALAR', valor: 116543.80, tipo: 'debito' }
+            ]
+        };
+
+        // ============================================
+        // DADOS DE FORNECEDORES POR MUNICÍPIO
+        // ============================================
+        let fornecedoresPorMunicipio = {
+            choró: [
+                { nome: 'FAU SOLUÇÕES', cnpj: '12.345.678/0001-90', contato: '(85) 3456-7890', email: 'contato@fau.com.br' },
+                { nome: 'LUNA EMP', cnpj: '23.456.789/0001-01', contato: '(85) 4567-8901', email: 'luna@emp.com.br' }
+            ],
+            ibiapina: [
+                { nome: 'HOSPIMED', cnpj: '34.567.890/0001-12', contato: '(88) 5678-9012', email: 'hospimed@email.com' },
+                { nome: 'FARMACIA POPULAR', cnpj: '45.678.901/0001-23', contato: '(88) 6789-0123', email: 'farmacia@email.com' }
+            ],
+            "martinópole": [
+                { nome: 'MEDNORTE', cnpj: '56.789.012/0001-34', contato: '(88) 7890-1234', email: 'mednorte@email.com' }
+            ],
+            potengi: [
+                { nome: 'LABORATÓRIO POTENGI', cnpj: '67.890.123/0001-45', contato: '(88) 8901-2345', email: 'labpotengi@email.com' }
+            ],
+            umirim: [
+                { nome: 'HOSPITALAR CE', cnpj: '78.901.234/0001-56', contato: '(85) 9012-3456', email: 'hospitalar@email.com' }
+            ]
+        };
+
+        // ============================================
+        // DADOS DE BALANCETE POR MUNICÍPIO
+        // ============================================
+        let balancetesPorMunicipio = {
+            choró: [
+                { conta: '3.1.1.01.001', descricao: 'Receita de Serviços', saldoAnterior: 1200000.00, debito: 0.00, credito: 350000.00, saldoAtual: 1550000.00 },
+                { conta: '4.1.1.01.001', descricao: 'Despesas com Pessoal', saldoAnterior: 500000.00, debito: 29600.00, credito: 0.00, saldoAtual: 529600.00 }
+            ],
+            ibiapina: [
+                { conta: '3.1.1.01.001', descricao: 'Receita de Serviços', saldoAnterior: 1100000.00, debito: 0.00, credito: 320000.00, saldoAtual: 1420000.00 },
+                { conta: '4.1.1.01.001', descricao: 'Despesas com Pessoal', saldoAnterior: 480000.00, debito: 31200.00, credito: 0.00, saldoAtual: 511200.00 }
+            ],
+            "martinópole": [
+                { conta: '3.1.1.01.001', descricao: 'Receita de Serviços', saldoAnterior: 900000.00, debito: 0.00, credito: 280000.00, saldoAtual: 1180000.00 },
+                { conta: '4.1.1.01.001', descricao: 'Despesas com Pessoal', saldoAnterior: 400000.00, debito: 27600.00, credito: 0.00, saldoAtual: 427600.00 }
+            ],
+            potengi: [
+                { conta: '3.1.1.01.001', descricao: 'Receita de Serviços', saldoAnterior: 950000.00, debito: 0.00, credito: 295000.00, saldoAtual: 1245000.00 },
+                { conta: '4.1.1.01.001', descricao: 'Despesas com Pessoal', saldoAnterior: 420000.00, debito: 28900.00, credito: 0.00, saldoAtual: 448900.00 }
+            ],
+            umirim: [
+                { conta: '3.1.1.01.001', descricao: 'Receita de Serviços', saldoAnterior: 980000.00, debito: 0.00, credito: 310000.00, saldoAtual: 1290000.00 },
+                { conta: '4.1.1.01.001', descricao: 'Despesas com Pessoal', saldoAnterior: 440000.00, debito: 30100.00, credito: 0.00, saldoAtual: 470100.00 }
+            ]
+        };
+
+        // ============================================
+        // DADOS DE OFÍCIOS POR MUNICÍPIO
+        // ============================================
+        let oficiosPorMunicipio = {
+            choró: [
+                { numero: '001/2025', data: '05/08/2025', destinatario: 'Secretaria Municipal de Saúde', assunto: 'Prestação de contas - Julho/2025', status: 'Enviado' }
+            ],
+            ibiapina: [
+                { numero: '001/2025', data: '06/08/2025', destinatario: 'Prefeitura Municipal', assunto: 'Solicitação de recursos', status: 'Enviado' }
+            ],
+            "martinópole": [
+                { numero: '001/2025', data: '07/08/2025', destinatario: 'Câmara Municipal', assunto: 'Prestação de contas', status: 'Pendente' }
+            ],
+            potengi: [
+                { numero: '001/2025', data: '08/08/2025', destinatario: 'Secretaria de Saúde', assunto: 'Relatório mensal', status: 'Enviado' }
+            ],
+            umirim: [
+                { numero: '001/2025', data: '09/08/2025', destinatario: 'Controladoria', assunto: 'Prestação de contas', status: 'Enviado' }
+            ]
+        };
+
+        // ============================================
+        // DOCUMENTOS ANEXADOS POR MUNICÍPIO
+        // ============================================
+        let documentosNF = [];
+        let documentosRH = [];
+        let documentosAssistencial = [];
+        let documentosExtrato = [];
+        let documentosBalancete = [];
+        let documentosOficios = [];
+        let documentosOutros = [];
+        
+        // ============================================
+        // DOCUMENTOS DO INSTITUTO FORZA
+        // ============================================
+        let documentosInstituto = {
+            estatuto: null,
+            ataDiretoria: null,
+            cnpjCertidoes: null,
+            dadosBancarios: {
+                banco: "Banco do Brasil",
+                agencia: "1234-5",
+                conta: "56789-0",
+                pix: "instituto@forza.org.br"
+            }
+        };
+
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let currentPage = 'dashboard';
+        let currentMunicipio = 'choró';
+
+        // ============================================
+        // FUNÇÃO PARA ATUALIZAR DADOS DO MUNICÍPIO
+        // ============================================
+        function atualizarDadosMunicipio() {
+            if (!usuarioLogado) return;
+            
+            const municipio = usuarioLogado.role === 'admin' ? currentMunicipio : usuarioLogado.municipio;
+            const dados = dadosMunicipios[municipio];
+            
+            document.getElementById('currentMunicipio').textContent = dados.nome;
+            
+            // Recarregar a página atual para mostrar os dados do novo município
+            carregarPagina(currentPage);
+        }
+
+        // ============================================
+        // FUNÇÃO PARA OBTER DADOS DO MUNICÍPIO ATUAL
+        // ============================================
+        function getDadosMunicipioAtual() {
+            const municipio = usuarioLogado.role === 'admin' ? currentMunicipio : usuarioLogado.municipio;
+            return {
+                municipio: municipio,
+                dados: dadosMunicipios[municipio],
+                funcionarios: funcionariosRH[municipio] || [],
+                pagamentos: pagamentosPorMunicipio[municipio] || [],
+                extratos: extratosPorMunicipio[municipio] || [],
+                fornecedores: fornecedoresPorMunicipio[municipio] || [],
+                balancetes: balancetesPorMunicipio[municipio] || [],
+                oficios: oficiosPorMunicipio[municipio] || []
+            };
+        }
+
+        // ============================================
+        // FUNÇÕES DE LOGIN/LOGOUT
+        // ============================================
+        function fazerLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const erroDiv = document.getElementById('erroLogin');
+            const erroTexto = document.getElementById('erroTexto');
+
+            const usuario = usuarios.find(u => u.username === username && u.password === password);
+
+            if (usuario) {
+                usuarioLogado = usuario;
+                erroDiv.style.display = 'none';
+                
+                document.getElementById('userName').textContent = usuario.nome;
+                document.getElementById('userRole').textContent = usuario.role === 'admin' ? 'Admin Geral' : `Usuário - ${usuario.municipio}`;
+                
+                const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+                document.getElementById('userAvatar').textContent = iniciais;
+                document.getElementById('headerAvatar').textContent = iniciais;
+                
+                const municipioSelect = document.getElementById('municipioSelect');
+                if (usuario.role === 'admin') {
+                    document.getElementById('currentMunicipio').textContent = 'Todos';
+                    municipioSelect.disabled = false;
+                } else {
+                    currentMunicipio = usuario.municipio;
+                    document.getElementById('currentMunicipio').textContent = dadosMunicipios[usuario.municipio].nome;
+                    municipioSelect.value = usuario.municipio;
+                    municipioSelect.disabled = true;
+                }
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'flex';
+                
+                carregarPagina('dashboard');
+            } else {
+                erroTexto.textContent = 'Usuário ou senha inválidos';
+                erroDiv.style.display = 'flex';
+            }
+        }
+
+        function logout() {
+            usuarioLogado = null;
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            const municipioSelect = document.getElementById('municipioSelect');
+            municipioSelect.disabled = false;
+        }
+
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupAssinatura();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('municipioSelect').addEventListener('change', function() {
+                if (!usuarioLogado) return;
+                
+                if (usuarioLogado.role === 'admin') {
+                    currentMunicipio = this.value;
+                    atualizarDadosMunicipio();
+                }
+            });
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const page = this.dataset.page;
+                    document.getElementById('page-title').textContent = this.querySelector('span').textContent;
+                    currentPage = page;
+                    
+                    carregarPagina(page);
+                });
+            });
+            
+            document.getElementById('competencia').addEventListener('change', function() {
+                carregarPagina(currentPage);
+            });
+
+            document.addEventListener('change', function(e) {
+                if (e.target.id === 'uploadAssinatura') {
+                    let file = e.target.files[0];
+                    if (!file) return;
+                    
+                    let reader = new FileReader();
+                    reader.onload = function(event) {
+                        assinaturaUpload = event.target.result;
+                        
+                        let canvas = document.getElementById('assinaturaCanvas');
+                        if (canvas) {
+                            let ctx = canvas.getContext('2d');
+                            let img = new Image();
+                            img.onload = function() {
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            };
+                            img.src = event.target.result;
+                        }
+                        
+                        alert('Assinatura carregada com sucesso!');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function carregarPagina(page) {
+            if (!usuarioLogado) return;
+            
+            switch(page) {
+                case 'dashboard':
+                    carregarDashboard();
+                    break;
+                case 'municipio':
+                    carregarMunicipio();
+                    break;
+                case 'extrato':
+                    carregarExtrato();
+                    break;
+                case 'balancete':
+                    carregarBalancete();
+                    break;
+                case 'oficios':
+                    carregarOficios();
+                    break;
+                case 'fornecedores':
+                    carregarFornecedores();
+                    break;
+                case 'servicos_apoio':
+                    carregarServicosApoio();
+                    break;
+                case 'assistencial':
+                    carregarAssistencial();
+                    break;
+                case 'rh':
+                    carregarRH();
+                    break;
+                case 'outros':
+                    carregarOutros();
+                    break;
+                case 'livro':
+                    carregarLivro();
+                    break;
+                case 'instituto_forza':
+                    carregarInstitutoForza();
+                    break;
+                case 'check-dashboard':
+                    carregarCheckDashboard();
+                    break;
+                case 'empresas':
+                    carregarEmpresas();
+                    break;
+                case 'upload':
+                    carregarUpload();
+                    break;
+                case 'analise':
+                    carregarAnalise();
+                    break;
+                case 'relatorio':
+                    carregarRelatorio();
+                    break;
+                case 'admin-dashboard':
+                    carregarDashboardAdmin();
+                    break;
+                case 'admin-usuarios':
+                    carregarUsuarios();
+                    break;
+                case 'admin-municipios':
+                    carregarTodosMunicipios();
+                    break;
+                default:
+                    carregarDashboard();
+            }
+        }
+
+        // ============================================
+        // PÁGINA INSTITUTO FORZA
+        // ============================================
+        function carregarInstitutoForza() {
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-building"></i> INSTITUTO FORZA</h2>
+                        <p style="color: #6c757d;">CNPJ: 41.697.143/0001-81</p>
+                    </div>
+                    
+                    <!-- Estatuto -->
+                    <div class="instituto-documento-card">
+                        <h3><i class="fas fa-file-contract"></i> Estatuto Social</h3>
+                        <p>Estatuto do Instituto de Gestão, Operacionalização e Assistência à Vida - FORZA</p>
+                        <p><small>Registro: Cartório de Registro Civil de Pessoas Jurídicas</small></p>
+                        <div style="margin-top: 15px;">
+                            <button class="btn-add" onclick="anexarDocumentoInstituto('estatuto')">
+                                <i class="fas fa-upload"></i> Anexar Estatuto
+                            </button>
+                            ${documentosInstituto.estatuto ? `
+                                <span class="documento-status anexado" style="margin-left: 10px;">
+                                    <i class="fas fa-check-circle"></i> Documento anexado
+                                </span>
+                                <button class="btn-add small" onclick="visualizarDocumentoInstituto('estatuto')" style="margin-left: 10px; background: #17a2b8;">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </button>
+                            ` : '<span class="documento-status pendente" style="margin-left: 10px;"><i class="fas fa-exclamation-triangle"></i> Pendente</span>'}
+                        </div>
+                        <input type="file" id="uploadEstatuto" accept=".pdf" style="display: none;" onchange="processarAnexoInstituto(this, 'estatuto')">
+                    </div>
+                    
+                    <!-- Ata da Diretoria -->
+                    <div class="instituto-documento-card">
+                        <h3><i class="fas fa-users"></i> Ata da Diretoria</h3>
+                        <p>Ata de eleição e posse da Diretoria Executiva e Conselho Fiscal</p>
+                        <p><small>Última atualização: 15/01/2025</small></p>
+                        <div style="margin-top: 15px;">
+                            <button class="btn-add" onclick="anexarDocumentoInstituto('ataDiretoria')">
+                                <i class="fas fa-upload"></i> Anexar Ata
+                            </button>
+                            ${documentosInstituto.ataDiretoria ? `
+                                <span class="documento-status anexado" style="margin-left: 10px;">
+                                    <i class="fas fa-check-circle"></i> Documento anexado
+                                </span>
+                                <button class="btn-add small" onclick="visualizarDocumentoInstituto('ataDiretoria')" style="margin-left: 10px; background: #17a2b8;">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </button>
+                            ` : '<span class="documento-status pendente" style="margin-left: 10px;"><i class="fas fa-exclamation-triangle"></i> Pendente</span>'}
+                        </div>
+                        <input type="file" id="uploadAtaDiretoria" accept=".pdf" style="display: none;" onchange="processarAnexoInstituto(this, 'ataDiretoria')">
+                    </div>
+                    
+                    <!-- CNPJ e Certidões -->
+                    <div class="instituto-documento-card">
+                        <h3><i class="fas fa-certificate"></i> CNPJ e Certidões</h3>
+                        <div style="display: grid; gap: 10px; margin-bottom: 15px;">
+                            <div><strong>CNPJ:</strong> 41.697.143/0001-81</div>
+                            <div><strong>Inscrição Municipal:</strong> 123.456-7</div>
+                            <div><strong>Inscrição Estadual:</strong> Isento</div>
+                        </div>
+                        <p><strong>Certidões:</strong></p>
+                        <ul style="margin-left: 20px; margin-bottom: 15px;">
+                            <li>Certidão Conjunta FGTS/INSS - Válida até 31/12/2025</li>
+                            <li>Certidão de Débitos Estaduais - Válida até 30/11/2025</li>
+                            <li>Certidão de Débitos Municipais - Válida até 31/10/2025</li>
+                            <li>Certidão de Regularidade do Trabalhador - Válida</li>
+                        </ul>
+                        <div style="margin-top: 15px;">
+                            <button class="btn-add" onclick="anexarDocumentoInstituto('cnpjCertidoes')">
+                                <i class="fas fa-upload"></i> Anexar Certidões
+                            </button>
+                            ${documentosInstituto.cnpjCertidoes ? `
+                                <span class="documento-status anexado" style="margin-left: 10px;">
+                                    <i class="fas fa-check-circle"></i> Documento anexado
+                                </span>
+                                <button class="btn-add small" onclick="visualizarDocumentoInstituto('cnpjCertidoes')" style="margin-left: 10px; background: #17a2b8;">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </button>
+                            ` : '<span class="documento-status pendente" style="margin-left: 10px;"><i class="fas fa-exclamation-triangle"></i> Pendente</span>'}
+                        </div>
+                        <input type="file" id="uploadCnpjCertidoes" accept=".pdf" style="display: none;" onchange="processarAnexoInstituto(this, 'cnpjCertidoes')">
+                    </div>
+                    
+                    <!-- Dados Bancários -->
+                    <div class="instituto-documento-card">
+                        <h3><i class="fas fa-university"></i> Dados Bancários</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>
+                                <label style="font-weight: 600;">Banco:</label>
+                                <input type="text" id="bancoInstituto" value="${documentosInstituto.dadosBancarios.banco}" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ced4da;" onchange="salvarDadosBancariosInstituto()">
+                            </div>
+                            <div>
+                                <label style="font-weight: 600;">Agência:</label>
+                                <input type="text" id="agenciaInstituto" value="${documentosInstituto.dadosBancarios.agencia}" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ced4da;" onchange="salvarDadosBancariosInstituto()">
+                            </div>
+                            <div>
+                                <label style="font-weight: 600;">Conta:</label>
+                                <input type="text" id="contaInstituto" value="${documentosInstituto.dadosBancarios.conta}" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ced4da;" onchange="salvarDadosBancariosInstituto()">
+                            </div>
+                            <div>
+                                <label style="font-weight: 600;">PIX:</label>
+                                <input type="text" id="pixInstituto" value="${documentosInstituto.dadosBancarios.pix}" style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid #ced4da;" onchange="salvarDadosBancariosInstituto()">
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn-add pdf" onclick="gerarComprovanteBancario()">
+                                <i class="fas fa-file-pdf"></i> Gerar Comprovante
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function anexarDocumentoInstituto(tipo) {
+            const idMap = {
+                estatuto: 'uploadEstatuto',
+                ataDiretoria: 'uploadAtaDiretoria',
+                cnpjCertidoes: 'uploadCnpjCertidoes'
+            };
+            document.getElementById(idMap[tipo]).click();
+        }
+
+        function processarAnexoInstituto(input, tipo) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dados = {
+                    nome: file.name,
+                    arquivo: e.target.result,
+                    dataEnvio: new Date().toLocaleDateString('pt-BR')
+                };
+                
+                documentosInstituto[tipo] = dados;
+                alert(`${file.name} anexado com sucesso!`);
+                carregarPagina('instituto_forza');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function visualizarDocumentoInstituto(tipo) {
+            if (documentosInstituto[tipo] && documentosInstituto[tipo].arquivo) {
+                const win = window.open();
+                win.document.write(`
+                    <iframe src="${documentosInstituto[tipo].arquivo}" style="width:100%; height:100%; position:fixed; top:0; left:0; border:none;"></iframe>
+                `);
+            } else {
+                alert('Nenhum documento anexado para visualização');
+            }
+        }
+
+        function salvarDadosBancariosInstituto() {
+            documentosInstituto.dadosBancarios = {
+                banco: document.getElementById('bancoInstituto').value,
+                agencia: document.getElementById('agenciaInstituto').value,
+                conta: document.getElementById('contaInstituto').value,
+                pix: document.getElementById('pixInstituto').value
+            };
+            alert('Dados bancários salvos com sucesso!');
+        }
+
+        function gerarComprovanteBancario() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.setTextColor(0, 43, 92);
+            doc.text('COMPROVANTE DE DADOS BANCÁRIOS', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(60, 60, 60);
+            doc.text('INSTITUTO FORZA', 105, 35, { align: 'center' });
+            doc.text('CNPJ: 41.697.143/0001-81', 105, 42, { align: 'center' });
+            
+            doc.setFontSize(10);
+            let y = 60;
+            doc.text(`Banco: ${documentosInstituto.dadosBancarios.banco}`, 20, y);
+            y += 10;
+            doc.text(`Agência: ${documentosInstituto.dadosBancarios.agencia}`, 20, y);
+            y += 10;
+            doc.text(`Conta: ${documentosInstituto.dadosBancarios.conta}`, 20, y);
+            y += 10;
+            doc.text(`PIX: ${documentosInstituto.dadosBancarios.pix}`, 20, y);
+            y += 20;
+            
+            doc.text(`Documento gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 20, y);
+            
+            doc.save('comprovante_dados_bancarios_forza.pdf');
+        }
+
+        // ============================================
+        // Placeholder para a nova aba
+        // ============================================
+        function carregarServicosApoio() {
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-briefcase"></i> Serviços de Apoio ADM</h2>
+                        <button class="btn-add" onclick="alert('Funcionalidade em desenvolvimento')">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="fas fa-chart-line" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>Módulo em desenvolvimento. Em breve você poderá gerenciar os serviços de apoio administrativo.</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // ============================================
+        // DASHBOARD PRINCIPAL
+        // ============================================
+        function carregarDashboard() {
+            const dados = getDadosMunicipioAtual().dados;
+
+            const diasRestantes = calcularDiasRestantes(dados.dataFim);
+            const percentualContrato = Math.round(((365 - diasRestantes) / 365) * 100);
+            
+            let corVigencia = '#28a745';
+            if (diasRestantes < 60) corVigencia = '#dc3545';
+            else if (diasRestantes < 120) corVigencia = '#ffc107';
+
+            const html = `
+                <div class="cards-row">
+                    <div class="card">
+                        <div class="card-icon docs"><i class="fas fa-file-alt"></i></div>
+                        <div class="card-content">
+                            <h3>Total Documentos</h3>
+                            <div class="valor">${dados.documentos}</div>
+                            <div class="small">3 vencidos</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon payments"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="card-content">
+                            <h3>Pagamentos</h3>
+                            <div class="valor">R$ ${formatarMoeda(dados.pagamentos)}</div>
+                            <div class="small">Agosto/2025</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon suppliers"><i class="fas fa-truck"></i></div>
+                        <div class="card-content">
+                            <h3>Fornecedores</h3>
+                            <div class="valor">${dados.fornecedores}</div>
+                            <div class="small">Ativos</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-icon completion"><i class="fas fa-check-circle"></i></div>
+                        <div class="card-content">
+                            <h3>Conclusão</h3>
+                            <div class="valor">${dados.conclusao}%</div>
+                            <div class="small">Documentação OK</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="vigencia-card">
+                        <div class="vigencia-header">
+                            <i class="fas fa-file-contract"></i>
+                            <h3>VIGÊNCIA DO CONTRATO</h3>
+                        </div>
+                        
+                        <div class="contrato-info">
+                            <div class="info-row">
+                                <span class="info-label">Número:</span>
+                                <span class="info-value">${dados.contrato}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Período:</span>
+                                <span class="info-value">${dados.dataInicio} a ${dados.dataFim}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="vigencia-timer">
+                            <div class="timer-circle" style="border-color: ${corVigencia}">
+                                <span class="timer-dias">${diasRestantes}</span>
+                                <span class="timer-label">dias</span>
+                            </div>
+                            <div class="timer-info">
+                                <div class="timer-texto" style="color: ${corVigencia}">
+                                    ${diasRestantes > 0 ? 'Vigente' : 'Vencido'}
+                                </div>
+                                <div class="timer-percentual">${percentualContrato}% concluído</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progresso-container">
+                            <div class="progresso-label">
+                                <span>Progresso do Contrato</span>
+                                <span>${percentualContrato}%</span>
+                            </div>
+                            <div class="progresso-bar">
+                                <div class="progresso-fill" style="width: ${percentualContrato}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="historico-card">
+                        <div class="historico-header">
+                            <i class="fas fa-history"></i>
+                            <h3>HISTÓRICO 2025</h3>
+                        </div>
+                        
+                        <div class="historico-grid">
+                            ${gerarHistoricoExemplo()}
+                        </div>
+                        
+                        <div class="historico-legenda">
+                            <div class="legenda-item">
+                                <span class="legenda-cor completo"></span>
+                                <span>Completo</span>
+                            </div>
+                            <div class="legenda-item">
+                                <span class="legenda-cor pendente"></span>
+                                <span>Pendente</span>
+                            </div>
+                            <div class="legenda-item">
+                                <span class="legenda-cor futuro"></span>
+                                <span>Futuro</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #002B5C"><i class="fas fa-file-pdf"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-valor">157</div>
+                            <div class="stat-label">Documentos no ano</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #28a745"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-valor">6</div>
+                            <div class="stat-label">Meses completos</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ffc107"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-valor">2</div>
+                            <div class="stat-label">Meses pendentes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #17a2b8"><i class="fas fa-percent"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-valor">75%</div>
+                            <div class="stat-label">Conclusão anual</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // ============================================
+        // PÁGINA MUNICÍPIO
+        // ============================================
+        function carregarMunicipio() {
+            const dados = getDadosMunicipioAtual().dados;
+            
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-city"></i> Documentos - ${dados.nome}</h2>
+                        <button class="btn-add" onclick="alert('Adicionar documento')">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    
+                    <div class="item-lista">
+                        <div class="item-info">
+                            <h4>Contrato de Gestão</h4>
+                            <p>Nº ${dados.contrato} · Vigência: ${dados.dataInicio} a ${dados.dataFim}</p>
+                        </div>
+                        <div class="item-valor">R$ ${formatarMoeda(dados.valorTotal)}</div>
+                        <div class="item-acoes">
+                            <button class="view" onclick="alert('Visualizar')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="item-lista">
+                        <div class="item-info">
+                            <h4>Termo Aditivo 001/2025</h4>
+                            <p>Prorrogação de prazo · 15/08/2025</p>
+                        </div>
+                        <div class="item-acoes">
+                            <button class="view" onclick="alert('Visualizar')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="item-lista">
+                        <div class="item-info">
+                            <h4>Publicação DOU</h4>
+                            <p>Extrato do contrato · 16/07/2025</p>
+                        </div>
+                        <div class="item-acoes">
+                            <button class="view" onclick="alert('Visualizar')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="item-lista">
+                        <div class="item-info">
+                            <h4>Plano de Trabalho</h4>
+                            <p>PT-001/2025 · Aprovado</p>
+                        </div>
+                        <div class="item-acoes">
+                            <button class="view" onclick="alert('Visualizar')"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // ============================================
+        // PÁGINA RH
+        // ============================================
+        function carregarRH() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const funcionarios = dadosMunicipio.funcionarios;
+            
+            let totalSalarios = funcionarios.reduce((acc, f) => acc + f.salario, 0);
+            let totalFuncionarios = funcionarios.length;
+            let funcionariosAtivos = funcionarios.filter(f => f.status === 'Ativo').length;
+            
+            let tabelaHTML = '';
+            funcionarios.forEach((f, index) => {
+                tabelaHTML += `
+                    <tr>
+                        <td>${f.nome}</td>
+                        <td>${f.cargo}</td>
+                        <td>${f.admissao}</td>
+                        <td>R$ ${formatarMoeda(f.salario)}</td>
+                        <td><span class="status-badge ${f.status === 'Ativo' ? 'ok' : 'inativo'}">${f.status}</span></td>
+                        <td>
+                            <button class="edit" onclick="editarFuncionario(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="delete" onclick="excluirFuncionario(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-users"></i> Recursos Humanos - ${dadosMunicipio.dados.nome}</h2>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-add" onclick="adicionarFuncionario()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="cards-row" style="margin-bottom: 15px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #002B5C;"><i class="fas fa-users"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-valor">${totalFuncionarios}</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #28a745;"><i class="fas fa-user-check"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-valor">${funcionariosAtivos}</div>
+                                <div class="stat-label">Ativos</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #ffc107;"><i class="fas fa-clock"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-valor">${totalFuncionarios - funcionariosAtivos}</div>
+                                <div class="stat-label">Inativos</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #17a2b8;"><i class="fas fa-calculator"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-valor">R$ ${formatarMoeda(totalSalarios/1000)}k</div>
+                                <div class="stat-label">Folha</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Cargo</th>
+                                    <th>Admissão</th>
+                                    <th>Salário</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tabelaHTML || '<tr><td colspan="6" style="text-align: center;">Nenhum funcionário</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="total-pagar">
+                        <i class="fas fa-calculator"></i> TOTAL A PAGAR: R$ ${formatarMoeda(totalSalarios)}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarFuncionario() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const nome = prompt('Nome:');
+            if (!nome) return;
+            
+            funcionariosRH[dadosMunicipio.municipio].push({
+                nome: nome,
+                cargo: prompt('Cargo:'),
+                admissao: prompt('Admissão (DD/MM/AAAA):'),
+                salario: parseFloat(prompt('Salário:')),
+                status: 'Ativo'
+            });
+            carregarPagina('rh');
+        }
+
+        function editarFuncionario(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const f = funcionariosRH[dadosMunicipio.municipio][index];
+            f.nome = prompt('Nome:', f.nome) || f.nome;
+            f.cargo = prompt('Cargo:', f.cargo) || f.cargo;
+            f.salario = parseFloat(prompt('Salário:', f.salario)) || f.salario;
+            f.status = prompt('Status (Ativo/Inativo):', f.status) || f.status;
+            carregarPagina('rh');
+        }
+
+        function excluirFuncionario(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            if (confirm('Excluir?')) {
+                funcionariosRH[dadosMunicipio.municipio].splice(index, 1);
+                carregarPagina('rh');
+            }
+        }
+
+        // ============================================
+        // PÁGINA FORNECEDORES
+        // ============================================
+        function carregarFornecedores() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const fornecedores = dadosMunicipio.fornecedores;
+            
+            let tabelaHTML = '';
+            fornecedores.forEach((f, index) => {
+                tabelaHTML += `
+                    <tr>
+                        <td><strong>${f.nome}</strong><br><small>${f.cnpj}</small></td>
+                        <td>${f.contato}<br><small>${f.email}</small></td>
+                        <td><span class="cnd-valida">✅ Válida</span></td>
+                        <td>✅ NF Emitida</td>
+                        <td>CT-00${index+1}/2025<br><small>01/01/2025 a 31/12/2025</small></td>
+                        <td>✅ Entregue</td>
+                        <td>
+                            <button class="view" onclick="verFornecedor(${index})"><i class="fas fa-eye"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-truck"></i> Fornecedores - ${dadosMunicipio.dados.nome}</h2>
+                        <button class="btn-add" onclick="adicionarFornecedor()">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    
+                    <div class="cards-row" style="margin-bottom: 15px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #002B5C;"><i class="fas fa-building"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-valor">${fornecedores.length}</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fornecedor</th>
+                                    <th>Contato</th>
+                                    <th>CND</th>
+                                    <th>NF</th>
+                                    <th>Contrato</th>
+                                    <th>Relatório</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tabelaHTML || '<tr><td colspan="7" style="text-align: center;">Nenhum fornecedor</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarFornecedor() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const nome = prompt('Nome do fornecedor:');
+            if (!nome) return;
+            
+            fornecedoresPorMunicipio[dadosMunicipio.municipio].push({
+                nome: nome,
+                cnpj: prompt('CNPJ:'),
+                contato: prompt('Telefone:'),
+                email: prompt('Email:')
+            });
+            
+            carregarPagina('fornecedores');
+        }
+
+        function verFornecedor(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const f = fornecedoresPorMunicipio[dadosMunicipio.municipio][index];
+            alert(`
+                FORNECEDOR: ${f.nome}
+                CNPJ: ${f.cnpj}
+                Contato: ${f.contato}
+                Email: ${f.email}
+            `);
+        }
+
+        // ============================================
+        // PÁGINA ASSISTENCIAL
+        // ============================================
+        function carregarAssistencial() {
+            const dados = getDadosMunicipioAtual().dados;
+            
+            const producao = [
+                { indicador: 'Atendimentos', semana1: 420, semana2: 385, semana3: 410, semana4: 632, total: 1847 },
+                { indicador: 'Internações', semana1: 28, semana2: 32, semana3: 30, semana4: 34, total: 124 },
+                { indicador: 'Cirurgias', semana1: 8, semana2: 7, semana3: 9, semana4: 8, total: 32 },
+                { indicador: 'Exames', semana1: 589, semana2: 612, semana3: 634, semana4: 621, total: 2456 }
+            ];
+            
+            let html = `
+                <div class="cards-row" style="margin-bottom: 15px;">
+                    <div class="card">
+                        <div class="card-icon" style="background: #002B5C"><i class="fas fa-user-md"></i></div>
+                        <div class="card-content">
+                            <h3>Atendimentos</h3>
+                            <div class="valor">1.847</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background: #28a745"><i class="fas fa-procedures"></i></div>
+                        <div class="card-content">
+                            <h3>Internações</h3>
+                            <div class="valor">124</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background: #ffc107"><i class="fas fa-syringe"></i></div>
+                        <div class="card-content">
+                            <h3>Cirurgias</h3>
+                            <div class="valor">32</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon" style="background: #17a2b8"><i class="fas fa-flask"></i></div>
+                        <div class="card-content">
+                            <h3>Exames</h3>
+                            <div class="valor">2.456</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-chart-bar"></i> Produção - ${dados.nome}</h2>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Indicador</th>
+                                    <th>Sem 1</th>
+                                    <th>Sem 2</th>
+                                    <th>Sem 3</th>
+                                    <th>Sem 4</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${producao.map(p => `
+                                    <tr>
+                                        <td>${p.indicador}</td>
+                                        <td>${p.semana1}</td>
+                                        <td>${p.semana2}</td>
+                                        <td>${p.semana3}</td>
+                                        <td>${p.semana4}</td>
+                                        <td><strong>${p.total}</strong></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // ============================================
+        // PÁGINA EXTRATO
+        // ============================================
+        function carregarExtrato() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const extratos = dadosMunicipio.extratos;
+            
+            let saldo = 0;
+            extratos.forEach(item => {
+                if (item.tipo === 'credito') saldo += item.valor;
+                else saldo -= item.valor;
+            });
+            
+            let extratoHTML = '';
+            extratos.forEach((item, index) => {
+                extratoHTML += `
+                    <tr>
+                        <td>${item.data}</td>
+                        <td>${item.descricao}</td>
+                        <td>${item.tipo === 'credito' ? 'R$ ' + formatarMoeda(item.valor) : '-'}</td>
+                        <td>${item.tipo === 'debito' ? 'R$ ' + formatarMoeda(item.valor) : '-'}</td>
+                        <td>
+                            <button class="edit" onclick="editarExtrato(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="delete" onclick="excluirExtrato(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-file-invoice-dollar"></i> Extrato Bancário - ${dadosMunicipio.dados.nome}</h2>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-add" onclick="adicionarExtrato()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="dados-bancarios">
+                        <div>
+                            <label>Banco:</label>
+                            <input type="text" id="banco" value="${dadosMunicipio.dados.banco}" placeholder="Banco" onchange="salvarDadosBancarios()">
+                        </div>
+                        <div>
+                            <label>Agência:</label>
+                            <input type="text" id="agencia" value="${dadosMunicipio.dados.agencia}" placeholder="Agência" onchange="salvarDadosBancarios()">
+                        </div>
+                        <div>
+                            <label>Conta:</label>
+                            <input type="text" id="conta" value="${dadosMunicipio.dados.conta}" placeholder="Conta" onchange="salvarDadosBancarios()">
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Crédito</th>
+                                    <th>Débito</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${extratoHTML || '<tr><td colspan="5" style="text-align: center;">Nenhum movimento cadastrado</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="total-pagar">
+                        <i class="fas fa-calculator"></i> SALDO ATUAL: R$ ${formatarMoeda(saldo)}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarExtrato() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const data = prompt('Data (DD/MM/AAAA):');
+            if (!data) return;
+            
+            const descricao = prompt('Descrição:');
+            if (!descricao) return;
+            
+            const tipo = prompt('Tipo (credito/debito):');
+            if (!tipo || (tipo !== 'credito' && tipo !== 'debito')) return;
+            
+            const valor = parseFloat(prompt('Valor:'));
+            if (isNaN(valor)) return;
+            
+            extratosPorMunicipio[dadosMunicipio.municipio].push({
+                data: data,
+                descricao: descricao,
+                valor: valor,
+                tipo: tipo
+            });
+            
+            carregarPagina('extrato');
+        }
+
+        function editarExtrato(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const item = extratosPorMunicipio[dadosMunicipio.municipio][index];
+            item.data = prompt('Data:', item.data) || item.data;
+            item.descricao = prompt('Descrição:', item.descricao) || item.descricao;
+            item.tipo = prompt('Tipo (credito/debito):', item.tipo) || item.tipo;
+            item.valor = parseFloat(prompt('Valor:', item.valor)) || item.valor;
+            carregarPagina('extrato');
+        }
+
+        function excluirExtrato(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            if (confirm('Excluir este movimento?')) {
+                extratosPorMunicipio[dadosMunicipio.municipio].splice(index, 1);
+                carregarPagina('extrato');
+            }
+        }
+
+        function salvarDadosBancarios() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            dadosMunicipio.dados.banco = document.getElementById('banco').value;
+            dadosMunicipio.dados.agencia = document.getElementById('agencia').value;
+            dadosMunicipio.dados.conta = document.getElementById('conta').value;
+            alert('Dados bancários salvos com sucesso!');
+        }
+
+        // ============================================
+        // PÁGINA BALANCETE
+        // ============================================
+        function carregarBalancete() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const balancetes = dadosMunicipio.balancetes;
+            
+            let balanceteHTML = '';
+            balancetes.forEach((item, index) => {
+                balanceteHTML += `
+                    <tr>
+                        <td>${item.conta}</td>
+                        <td>${item.descricao}</td>
+                        <td>R$ ${formatarMoeda(item.saldoAnterior)}</td>
+                        <td>R$ ${formatarMoeda(item.debito)}</td>
+                        <td>R$ ${formatarMoeda(item.credito)}</td>
+                        <td>R$ ${formatarMoeda(item.saldoAtual)}</td>
+                        <td>
+                            <button class="edit" onclick="editarBalancete(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="delete" onclick="excluirBalancete(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-chart-pie"></i> Balancete Contábil - ${dadosMunicipio.dados.nome}</h2>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-add" onclick="adicionarBalancete()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Conta</th>
+                                    <th>Descrição</th>
+                                    <th>Saldo Anterior</th>
+                                    <th>Débito</th>
+                                    <th>Crédito</th>
+                                    <th>Saldo Atual</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${balanceteHTML || '<tr><td colspan="7" style="text-align: center;">Nenhuma conta cadastrada</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarBalancete() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const conta = prompt('Número da conta:');
+            if (!conta) return;
+            
+            const descricao = prompt('Descrição:');
+            if (!descricao) return;
+            
+            const saldoAnterior = parseFloat(prompt('Saldo Anterior:'));
+            if (isNaN(saldoAnterior)) return;
+            
+            const debito = parseFloat(prompt('Débito:') || '0');
+            const credito = parseFloat(prompt('Crédito:') || '0');
+            const saldoAtual = saldoAnterior - debito + credito;
+            
+            balancetesPorMunicipio[dadosMunicipio.municipio].push({
+                conta: conta,
+                descricao: descricao,
+                saldoAnterior: saldoAnterior,
+                debito: debito,
+                credito: credito,
+                saldoAtual: saldoAtual
+            });
+            
+            carregarPagina('balancete');
+        }
+
+        function editarBalancete(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const item = balancetesPorMunicipio[dadosMunicipio.municipio][index];
+            item.conta = prompt('Conta:', item.conta) || item.conta;
+            item.descricao = prompt('Descrição:', item.descricao) || item.descricao;
+            item.saldoAnterior = parseFloat(prompt('Saldo Anterior:', item.saldoAnterior)) || item.saldoAnterior;
+            item.debito = parseFloat(prompt('Débito:', item.debito)) || item.debito;
+            item.credito = parseFloat(prompt('Crédito:', item.credito)) || item.credito;
+            item.saldoAtual = item.saldoAnterior - item.debito + item.credito;
+            carregarPagina('balancete');
+        }
+
+        function excluirBalancete(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            if (confirm('Excluir esta conta?')) {
+                balancetesPorMunicipio[dadosMunicipio.municipio].splice(index, 1);
+                carregarPagina('balancete');
+            }
+        }
+
+        // ============================================
+        // PÁGINA OFÍCIOS
+        // ============================================
+        function carregarOficios() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const oficios = dadosMunicipio.oficios;
+            
+            let oficiosHTML = '';
+            oficios.forEach((item, index) => {
+                oficiosHTML += `
+                    <tr>
+                        <td>${item.numero}</td>
+                        <td>${item.data}</td>
+                        <td>${item.destinatario}</td>
+                        <td>${item.assunto}</td>
+                        <td><span class="status-badge ${item.status === 'Enviado' ? 'ok' : 'pendente'}">${item.status}</span></td>
+                        <td>
+                            <button class="edit" onclick="editarOficio(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="delete" onclick="excluirOficio(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-envelope"></i> Ofícios Expedidos - ${dadosMunicipio.dados.nome}</h2>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn-add" onclick="adicionarOficio()">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Data</th>
+                                    <th>Destinatário</th>
+                                    <th>Assunto</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${oficiosHTML || '<tr><td colspan="6" style="text-align: center;">Nenhum ofício cadastrado</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarOficio() {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const numero = prompt('Número do ofício:');
+            if (!numero) return;
+            
+            const data = prompt('Data (DD/MM/AAAA):');
+            if (!data) return;
+            
+            const destinatario = prompt('Destinatário:');
+            if (!destinatario) return;
+            
+            const assunto = prompt('Assunto:');
+            if (!assunto) return;
+            
+            const status = prompt('Status (Enviado/Pendente):') || 'Pendente';
+            
+            oficiosPorMunicipio[dadosMunicipio.municipio].push({
+                numero: numero,
+                data: data,
+                destinatario: destinatario,
+                assunto: assunto,
+                status: status
+            });
+            
+            carregarPagina('oficios');
+        }
+
+        function editarOficio(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            const item = oficiosPorMunicipio[dadosMunicipio.municipio][index];
+            item.numero = prompt('Número:', item.numero) || item.numero;
+            item.data = prompt('Data:', item.data) || item.data;
+            item.destinatario = prompt('Destinatário:', item.destinatario) || item.destinatario;
+            item.assunto = prompt('Assunto:', item.assunto) || item.assunto;
+            item.status = prompt('Status:', item.status) || item.status;
+            carregarPagina('oficios');
+        }
+
+        function excluirOficio(index) {
+            const dadosMunicipio = getDadosMunicipioAtual();
+            if (confirm('Excluir este ofício?')) {
+                oficiosPorMunicipio[dadosMunicipio.municipio].splice(index, 1);
+                carregarPagina('oficios');
+            }
+        }
+
+        // ============================================
+        // PÁGINA OUTROS
+        // ============================================
+        function carregarOutros() {
+            const dados = getDadosMunicipioAtual().dados;
+            
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-folder-open"></i> Outros Documentos - ${dados.nome}</h2>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="fas fa-folder-open" style="font-size: 48px; margin-bottom: 15px;"></i>
+                        <p>Área para documentos diversos e anexos gerais.</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        // ============================================
+        // GERADOR DE LIVRO
+        // ============================================
+        function carregarLivro() {
+            const dados = getDadosMunicipioAtual().dados;
+            const competencia = document.getElementById('competencia').selectedOptions[0].text;
+            
+            const html = `
+                <div class="livro-preview">
+                    <div class="livro-capa">
+                        <div class="brasao-grande">⛪</div>
+                        <h1 class="livro-titulo">MUNICÍPIO DE ${dados.nome}</h1>
+                        <h2 class="livro-subtitulo">SECRETARIA MUNICIPAL DE SAÚDE</h2>
+                        <h2 style="font-size: 1.5rem; margin: 20px 0;">LIVRO DE PRESTAÇÃO DE CONTAS</h2>
+                        <h3 style="color: ${dados.cor};">${competencia}</h3>
+                    </div>
+
+                    <div class="livro-opcoes">
+                        <button class="livro-btn resumido" onclick="gerarLivroResumido()">
+                            <i class="fas fa-file-pdf"></i> LIVRO RESUMIDO<br><small>Para apresentação ao gestor</small>
+                        </button>
+                        <button class="livro-btn completo" onclick="gerarLivroCompleto()">
+                            <i class="fas fa-file-pdf"></i> LIVRO COMPLETO<br><small>Com todos os anexos</small>
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; color: #6c757d; font-size: 0.9rem;">
+                        <p>O livro resumido contém todas as informações consolidadas para apresentação.</p>
+                        <p>O livro completo inclui todos os documentos anexados em PDF.</p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function gerarLivroResumido() {
+            alert('Funcionalidade em desenvolvimento. Em breve você poderá gerar o livro resumido.');
+        }
+
+        function gerarLivroCompleto() {
+            alert('Funcionalidade em desenvolvimento. Em breve você poderá gerar o livro completo.');
+        }
+
+        // ============================================
+        // MÓDULO CHECKLIST
+        // ============================================
+        function carregarCheckDashboard() {
+            let totalDocs = documentosCheck.length;
+            let validos = documentosCheck.filter(d => d.status === 'Válido').length;
+            let invalidos = documentosCheck.filter(d => d.status === 'Inválido').length;
+            let percentual = totalDocs > 0 ? (validos / totalDocs * 100).toFixed(0) : 0;
+
+            const html = `
+                <div class="cards-row">
+                    <div class="card">
+                        <div class="card-icon docs" style="background: #667eea"><i class="fas fa-file-alt"></i></div>
+                        <div class="card-content">
+                            <h3>Total</h3>
+                            <div class="valor">${totalDocs}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon docs" style="background: #28a745"><i class="fas fa-check-circle"></i></div>
+                        <div class="card-content">
+                            <h3>Válidos</h3>
+                            <div class="valor">${validos}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon docs" style="background: #dc3545"><i class="fas fa-times-circle"></i></div>
+                        <div class="card-content">
+                            <h3>Inválidos</h3>
+                            <div class="valor">${invalidos}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon docs" style="background: #17a2b8"><i class="fas fa-percent"></i></div>
+                        <div class="card-content">
+                            <h3>Conclusão</h3>
+                            <div class="valor">${percentual}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lista-container">
+                    <h3 style="margin-bottom: 15px;">📊 Progresso da Validação</h3>
+                    <div style="width: 100%; height: 20px; background: #e9ecef; border-radius: 10px;">
+                        <div style="height: 100%; width: ${percentual}%; background: #28a745; border-radius: 10px;"></div>
+                    </div>
+                    <p style="text-align: center; margin-top: 10px;">${percentual}% válidos (${validos} de ${totalDocs})</p>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function carregarEmpresas() {
+            let empresasList = '';
+            empresas.forEach((emp, index) => {
+                empresasList += `
+                    <div class="item-lista">
+                        <div class="item-info"><h4>${emp}</h4></div>
+                        <div class="item-acoes">
+                            <button class="delete" onclick="removerEmpresa(${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-building"></i> Empresas</h2>
+                        <button class="btn-add" onclick="adicionarEmpresa()">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </div>
+                    
+                    <input type="text" id="novaEmpresa" placeholder="Nome da empresa" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ced4da;">
+                    
+                    ${empresasList || '<p style="text-align: center;">Nenhuma empresa</p>'}
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function adicionarEmpresa() {
+            let nome = document.getElementById('novaEmpresa')?.value;
+            if (!nome || nome.trim() === '') {
+                alert('Digite o nome');
+                return;
+            }
+            empresas.push(nome);
+            document.getElementById('novaEmpresa').value = '';
+            carregarPagina('empresas');
+        }
+
+        function removerEmpresa(index) {
+            empresas.splice(index, 1);
+            carregarPagina('empresas');
+        }
+
+        function carregarUpload() {
+            const html = `
+                <div class="lista-container">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Upload</h2>
+                    
+                    <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Selecionar arquivos</h3>
+                        <input type="file" id="fileUpload" multiple style="display: none;" onchange="uploadDocs()">
+                    </div>
+                    
+                    <div style="margin: 15px 0;">
+                        <label>Data NF:</label>
+                        <input type="date" id="dataNF" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ced4da;">
+                    </div>
+                    
+                    <div id="loadingUpload" class="loader"></div>
+                    <div id="contadorDocs" style="text-align: center;"></div>
+                    <div id="listaArquivos"></div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function uploadDocs() {
+            let files = document.getElementById('fileUpload')?.files;
+            let dataNF = document.getElementById('dataNF')?.value;
+
+            if (!files || files.length === 0) {
+                alert('Selecione arquivos');
+                return;
+            }
+
+            document.getElementById('loadingUpload').style.display = 'block';
+
+            setTimeout(() => {
+                for (let i = 0; i < files.length; i++) {
+                    let status = files[i].name.toLowerCase().includes('nota') ? 'Válido' : 'Inválido';
+                    documentosCheck.push({
+                        nome: files[i].name,
+                        dataNF: dataNF || '',
+                        status: status
+                    });
+                }
+
+                document.getElementById('loadingUpload').style.display = 'none';
+                document.getElementById('contadorDocs').innerHTML = `${files.length} enviados`;
+                
+                let lista = '';
+                documentosCheck.slice(-files.length).forEach(doc => {
+                    lista += `<div class="item-lista"><span>${doc.nome}</span> <span style="color: ${doc.status === 'Válido' ? '#28a745' : '#dc3545'};">${doc.status}</span></div>`;
+                });
+                document.getElementById('listaArquivos').innerHTML = lista;
+            }, 1000);
+        }
+
+        function carregarAnalise() {
+            let tabela = '';
+            documentosCheck.forEach(doc => {
+                tabela += `
+                    <tr>
+                        <td>${doc.nome}</td>
+                        <td><span class="status-badge ${doc.status === 'Válido' ? 'ok' : 'inativo'}">${doc.status}</span></td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-search"></i> Análise</h2>
+                        <button class="btn-add" onclick="analisarDocs()">
+                            <i class="fas fa-play"></i> Executar
+                        </button>
+                    </div>
+                    
+                    <div id="loadingAnalise" class="loader"></div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Documento</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="tabelaResultado">
+                                ${tabela || '<tr><td colspan="2" style="text-align: center;">Nenhum documento</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function analisarDocs() {
+            document.getElementById('loadingAnalise').style.display = 'block';
+
+            setTimeout(() => {
+                let tabela = '';
+                documentosCheck.forEach(doc => {
+                    let status = doc.nome.toLowerCase().includes('nota') ? 'Válido' : 'Inválido';
+                    doc.status = status;
+                    tabela += `<tr><td>${doc.nome}</td><td><span class="status-badge ${status === 'Válido' ? 'ok' : 'inativo'}">${status}</span></td></tr>`;
+                });
+
+                document.getElementById('loadingAnalise').style.display = 'none';
+                document.getElementById('tabelaResultado').innerHTML = tabela;
+            }, 1500);
+        }
+
+        function carregarRelatorio() {
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-file-pdf"></i> Relatório</h2>
+                        <button class="btn-add" onclick="gerarRelatorioCheck()">
+                            <i class="fas fa-file-pdf"></i> Gerar
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label>Responsável:</label>
+                        <input type="text" id="usuarioAssinatura" placeholder="Nome" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ced4da;">
+                    </div>
+                    
+                    <h3>Assinatura:</h3>
+                    <canvas id="assinaturaCanvas" width="400" height="150"></canvas>
+                    
+                    <div style="margin: 15px 0;">
+                        <button onclick="limparAssinatura()">Limpar</button>
+                    </div>
+                    
+                    <h3>Ou enviar imagem:</h3>
+                    <input type="file" id="uploadAssinatura" accept="image/png, image/jpeg">
+                    
+                    <div id="resultadoRelatorio"></div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+            setupAssinatura();
+        }
+
+        function gerarRelatorioCheck() {
+            let usuario = document.getElementById('usuarioAssinatura')?.value || 'Não informado';
+            let canvas = document.getElementById('assinaturaCanvas');
+            let assinaturaData = canvas.toDataURL('image/png');
+            
+            if (assinaturaUpload) {
+                assinaturaData = assinaturaUpload;
+            }
+            
+            let ctx = canvas.getContext('2d');
+            let pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let temAssinatura = false;
+            
+            for (let i = 0; i < pixelData.length; i += 4) {
+                if (pixelData[i] < 255 || pixelData[i + 1] < 255 || pixelData[i + 2] < 255) {
+                    temAssinatura = true;
+                    break;
+                }
+            }
+            
+            let total = documentosCheck.length;
+            let validos = documentosCheck.filter(d => d.status === 'Válido').length;
+            let invalidos = documentosCheck.filter(d => d.status === 'Inválido').length;
+            let dataAtual = new Date().toLocaleDateString('pt-BR');
+            
+            let html = `
+                <div style="background: white; padding: 20px; border-radius: 8px;">
+                    <h3 style="color: #002B5C;">RELATÓRIO DE VALIDAÇÃO</h3>
+                    <p><strong>Data:</strong> ${dataAtual}</p>
+                    <p><strong>Responsável:</strong> ${usuario}</p>
+                    
+                    <hr>
+                    
+                    <p><strong>Total:</strong> ${total}</p>
+                    <p><strong>Válidos:</strong> ${validos}</p>
+                    <p><strong>Inválidos:</strong> ${invalidos}</p>
+                    
+                    <hr>
+                    
+                    <h4>Detalhamento:</h4>
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead><tr><th>Documento</th><th>Status</th> </thead>
+                        <tbody>
+                            ${documentosCheck.map(doc => `
+                                <tr><td>${doc.nome}</td><td>${doc.status}</td> </tr>
+                            `).join('')}
+                        </tbody>
+                     </table>
+                    
+                    <hr>
+                    
+                    <p><strong>Assinatura:</strong></p>
+                    ${temAssinatura || assinaturaUpload ? 
+                        `<img src="${assinaturaData}" style="max-width:200px; border:1px solid #ddd;">` : 
+                        '<p style="color:#dc3545;">Sem assinatura</p>'
+                    }
+                </div>
+            `;
+            
+            document.getElementById('resultadoRelatorio').innerHTML = html;
+        }
+
+        // ============================================
+        // FUNÇÕES ADMIN
+        // ============================================
+        function carregarDashboardAdmin() {
+            if (usuarioLogado.role !== 'admin') {
+                carregarDashboard();
+                return;
+            }
+            
+            let totalMunicipios = Object.keys(dadosMunicipios).length;
+            let mediaConclusao = Object.values(dadosMunicipios).reduce((acc, m) => acc + m.conclusao, 0) / totalMunicipios;
+
+            const html = `
+                <div class="cards-row">
+                    <div class="card">
+                        <div class="card-icon docs" style="background: #667eea;"><i class="fas fa-city"></i></div>
+                        <div class="card-content">
+                            <h3>Municípios</h3>
+                            <div class="valor">${totalMunicipios}</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon payments" style="background: #11998e;"><i class="fas fa-users"></i></div>
+                        <div class="card-content">
+                            <h3>Usuários</h3>
+                            <div class="valor">6</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon suppliers" style="background: #f093fb;"><i class="fas fa-file-pdf"></i></div>
+                        <div class="card-content">
+                            <h3>Documentos</h3>
+                            <div class="valor">204</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon completion" style="background: #4facfe;"><i class="fas fa-percent"></i></div>
+                        <div class="card-content">
+                            <h3>Média</h3>
+                            <div class="valor">${mediaConclusao.toFixed(0)}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 20px 0;">📊 Desempenho por Município</h3>
+                <div class="municipios-grid">
+                    ${Object.values(dadosMunicipios).map(m => `
+                        <div class="municipio-card">
+                            <div class="municipio-header" style="background: ${m.cor};">
+                                <h3>${m.nome}</h3>
+                                <p>${m.regiao}</p>
+                            </div>
+                            <div class="municipio-body">
+                                <div class="municipio-stats">
+                                    <div class="stat-item"><div class="valor">${m.documentos}</div><div class="label">Docs</div></div>
+                                    <div class="stat-item"><div class="valor">${m.fornecedores}</div><div class="label">Forn</div></div>
+                                    <div class="stat-item"><div class="valor">${m.conclusao}%</div><div class="label">Concl</div></div>
+                                    <div class="stat-item"><div class="valor">R$ ${formatarMoeda(m.pagamentos/1000)}k</div><div class="label">Pag</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function carregarUsuarios() {
+            if (usuarioLogado.role !== 'admin') {
+                carregarDashboard();
+                return;
+            }
+            
+            const usuariosExemplo = [
+                { nome: 'João Silva', username: 'joao', role: 'user', municipio: 'Choró', status: 'Ativo' },
+                { nome: 'Maria Oliveira', username: 'maria', role: 'user', municipio: 'Ibiapina', status: 'Ativo' },
+                { nome: 'Admin', username: 'admin', role: 'admin', municipio: 'Todos', status: 'Ativo' }
+            ];
+            
+            const html = `
+                <div class="lista-container">
+                    <div class="lista-header">
+                        <h2><i class="fas fa-users-cog"></i> Usuários</h2>
+                        <button class="btn-add" onclick="alert('Adicionar usuário')">
+                            <i class="fas fa-plus"></i> Novo
+                        </button>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>32<th>Nome</th><th>Usuário</th><th>Perfil</th><th>Município</th><th>Status</th> </thead>
+                            <tbody>
+                                ${usuariosExemplo.map(u => `
+                                    <tr>
+                                        <td>${u.nome}${u.username}${u.role}${u.municipio}
+                                        <span class="status-badge ${u.status === 'Ativo' ? 'ok' : 'inativo'}">${u.status}</span>
+                                       </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function carregarTodosMunicipios() {
+            if (usuarioLogado.role !== 'admin') {
+                carregarDashboard();
+                return;
+            }
+            carregarDashboardAdmin();
+        }
+
+        // ============================================
+        // FUNÇÕES AUXILIARES
+        // ============================================
+        function calcularDiasRestantes(dataFimStr) {
+            if (!dataFimStr) return 365;
+            const [dia, mes, ano] = dataFimStr.split('/');
+            const dataFim = new Date(ano, mes - 1, dia);
+            const hoje = new Date();
+            const diff = dataFim - hoje;
+            return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+        }
+
+        function gerarHistoricoExemplo() {
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set'];
+            const status = ['completo', 'completo', 'pendente', 'completo', 'completo', 'nao-iniciado', 'completo', 'pendente', 'futuro'];
+            
+            return meses.map((mes, i) => `
+                <div class="mes-item ${status[i]}">
+                    <div class="mes-nome">${mes}</div>
+                    <div class="mes-status">
+                        <span class="status-icon">${status[i] === 'completo' ? '✅' : status[i] === 'pendente' ? '⚠️' : '⏳'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatarMoeda(valor) {
+            if (!valor) return '0,00';
+            return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function setupAssinatura() {
+            let canvas = document.getElementById('assinaturaCanvas');
+            if (!canvas) return;
+            
+            let ctx = canvas.getContext('2d');
+            let desenhando = false;
+
+            canvas.addEventListener('mousedown', (e) => {
+                desenhando = true;
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!desenhando) return;
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#002B5C';
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(e.offsetX, e.offsetY);
+            });
+
+            canvas.addEventListener('mouseup', () => desenhando = false);
+            canvas.addEventListener('mouseleave', () => desenhando = false);
+        }
+
+        function limparAssinatura() {
+            let canvas = document.getElementById('assinaturaCanvas');
+            if (canvas) {
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    </script>
+</body>
+</html>
